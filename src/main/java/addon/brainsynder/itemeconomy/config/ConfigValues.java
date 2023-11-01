@@ -32,6 +32,17 @@ public interface ConfigValues {
             Default: '{default}'
             """);
 
+    ConfigEntry<String> SHORT_COST = createEntry("Cost.Short", "&#fa7d7d", """
+            If the player does not have enough items, this is the color it will display as (Used in the Lore)
+            
+            Default: '{default}'
+            """);
+    ConfigEntry<String> OVER_COST = createEntry("Cost.Over", "&#99ffac", """
+            If the player has over to total items, this is the color it will display as (Used in the Lore)
+            
+            Default: '{default}'
+            """);
+
     ConfigEntry<String> TRUE = createEntry("Boolean.true", "&#92fc98true", "Default: '{default}'");
     ConfigEntry<String> FALSE = createEntry("Boolean.false", "&#fa7d7dfalse", "Default: '{default}'");
 

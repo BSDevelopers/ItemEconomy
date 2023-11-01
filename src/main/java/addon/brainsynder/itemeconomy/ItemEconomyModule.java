@@ -182,13 +182,27 @@ public class ItemEconomyModule extends PetModule {
 
         int total = Arrays.stream(user.getPlayer().getInventory().getContents())
                 .filter(Objects::nonNull)
-                .filter(i -> (i.getType() == itemPrice.material()) && (itemPrice.customModelData() == -1 || i.getItemMeta().getCustomModelData() == itemPrice.customModelData()))
+                .filter(item -> {
+                    // Materials do not match
+                    if (item.getType() != itemPrice.material()) return false;
+
+                    // Item HAS CustomModel
+                    if (item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
+                        int cmd = item.getItemMeta().getCustomModelData();
+
+                        // Verify item has the same CustomModel as what is required from the ItemPrice
+                        return (itemPrice.customModelData() == cmd);
+                    }
+
+                    // Verify the ItemPrice does not have a CustomModel
+                    return (itemPrice.customModelData() == -1);
+                })
                 .mapToInt(ItemStack::getAmount).sum();
 
         for (String line : lore)
             builder.addLore(line
                     .replace("{type}", type.getName())
-                    .replace("{current-total}", String.valueOf(total))
+                    .replace("{current-total}", Colorize.translateBungeeHex((total >= itemPrice.count()) ? ConfigValues.OVER_COST.getValue() : ConfigValues.SHORT_COST.getValue()) + total)
                     .replace("{cost}", String.valueOf(itemPrice.count()))
                     .replace("{purchased}", String.valueOf(var(contains)))
                     .replace("{cost-display}", price)
@@ -203,8 +217,8 @@ public class ItemEconomyModule extends PetModule {
         if (!isEnabled()) return;
         // if (AddonPermissions.hasPermission(this, event.getUser().getPlayer(), typePermissions.get(event.getPetType()))) return;
 
-        ItemPrice price = priceMap.getOrDefault(event.getPetType(), DEFAULT_PRICE);
-        if ((price == null) || !price.enabled()) return; // The pet is free, return
+        ItemPrice itemPrice = priceMap.getOrDefault(event.getPetType(), DEFAULT_PRICE);
+        if ((itemPrice == null) || !itemPrice.enabled()) return; // The pet is free, return
 
         PetUser user = event.getUser();
         // If player already owns the pet ignore
@@ -212,62 +226,86 @@ public class ItemEconomyModule extends PetModule {
 
         int total = Arrays.stream(user.getPlayer().getInventory().getContents())
                 .filter(Objects::nonNull)
-                .filter(i -> (i.getType() == price.material()) && (price.customModelData() == -1 || i.getItemMeta().getCustomModelData() == price.customModelData()))
+                .filter(item -> {
+                    // Materials do not match
+                    if (item.getType() != itemPrice.material()) return false;
+
+                    // Item HAS CustomModel
+                    if (item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
+                        int cmd = item.getItemMeta().getCustomModelData();
+
+                        // Verify item has the same CustomModel as what is required from the ItemPrice
+                        return (itemPrice.customModelData() == cmd);
+                    }
+
+                    // Verify the ItemPrice does not have a CustomModel
+                    return (itemPrice.customModelData() == -1);
+                })
                 .mapToInt(ItemStack::getAmount).sum();
 
-        if (total < price.count()) {
+        if (total < itemPrice.count()) {
             event.setCancelled(true);
             user.getPlayer().sendMessage(Colorize.translateBungeeHex(ConfigValues.INSUFFICIENT_FUNDS_MESSAGE.getValue())
-                    .replace("{cost-display}", price.displayName())
+                    .replace("{cost-display}", itemPrice.displayName())
                     .replace("{type}", event.getPetType().getName())
                     .replace("{current-total}", String.valueOf(total))
-                    .replace("{cost}", String.valueOf(price.count()))
+                    .replace("{cost}", String.valueOf(itemPrice.count()))
             );
             return;
         }
 
         // Checks if PayPerUse is enabled, if it is not add the pet to the players purchased list
         if (ConfigValues.PAY_PER_USE.getValue()) {
-            remove(price, event.getUser().getPlayer().getInventory());
+            remove(itemPrice, event.getUser().getPlayer().getInventory());
             user.getPlayer().sendMessage(Colorize.translateBungeeHex(ConfigValues.PER_USE_PURCHASE_MESSAGE.getValue())
-                    .replace("{cost-display}", price.displayName())
+                    .replace("{cost-display}", itemPrice.displayName())
                     .replace("{type}", event.getPetType().getName())
                     .replace("{current-total}", String.valueOf(total))
-                    .replace("{cost}", String.valueOf(price.count()))
+                    .replace("{cost}", String.valueOf(itemPrice.count()))
             );
             return;
         }
 
         // withdraw money, and add pet to the players purchased list
         user.addOwnedPet(event.getPetType());
-        remove(price, event.getUser().getPlayer().getInventory());
+        remove(itemPrice, event.getUser().getPlayer().getInventory());
         user.getPlayer().sendMessage(Colorize.translateBungeeHex(ConfigValues.ONE_TIME_PURCHASE_MESSAGE.getValue())
-                .replace("{cost-display}", price.displayName())
+                .replace("{cost-display}", itemPrice.displayName())
                 .replace("{type}", event.getPetType().getName())
                 .replace("{current-total}", String.valueOf(total))
-                .replace("{cost}", String.valueOf(price.count()))
+                .replace("{cost}", String.valueOf(itemPrice.count()))
         );
         user.updateSelectionMenu();
     }
 
 
 
-    private static int remove(ItemPrice price, Inventory inventory) {
-        int amountLeft = price.count();
+    private static int remove(ItemPrice itemPrice, Inventory inventory) {
+        int amountLeft = itemPrice.count();
 
         for (int currentSlot = 0; currentSlot < getStorageContents(inventory).length && amountLeft > 0; currentSlot++) {
-            ItemStack currentItem = inventory.getItem(currentSlot);
+            ItemStack item = inventory.getItem(currentSlot);
 
-            if ((currentItem != null)
-                    && (currentItem.getType() == price.material())
-                    && ((price.customModelData() == -1) || (currentItem.getItemMeta().getCustomModelData() == price.customModelData()))) {
-                int neededToRemove = Math.min(currentItem.getAmount(), amountLeft);
+            // Materials do not match
+            if ((item == null) || (item.getType() != itemPrice.material())) continue;
 
-                currentItem.setAmount(currentItem.getAmount() - neededToRemove);
-                inventory.setItem(currentSlot, currentItem);
+            // Item HAS CustomModel
+            if (item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
+                int cmd = item.getItemMeta().getCustomModelData();
 
-                amountLeft -= neededToRemove;
+                // Verify item has the same CustomModel as what is required from the ItemPrice
+                if (itemPrice.customModelData() != cmd) continue;
+            }else{
+                // Verify the ItemPrice does not have a CustomModel
+                if (itemPrice.customModelData() != -1) continue;
             }
+
+            int neededToRemove = Math.min(item.getAmount(), amountLeft);
+
+            item.setAmount(item.getAmount() - neededToRemove);
+            inventory.setItem(currentSlot, item);
+
+            amountLeft -= neededToRemove;
         }
         return amountLeft;
     }

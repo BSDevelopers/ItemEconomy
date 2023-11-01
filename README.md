@@ -1,6 +1,7 @@
 # ItemEconomy
 This is an addon for the SimplePets v5 plugin.
-It allows players to purchase pets by using In-Game Items configured in its config
+
+It allows players to purchase pets by using In-Game Items configured in its config 
 The items used as currency can be Custom Models you just need to know what material the item is and what the CustomModelData number is
 
 ### Optional Requirements:
@@ -30,6 +31,16 @@ Price:
   # 
   # Default: 'BYPASSED'
   Bypassed: BYPASSED
+
+Cost:
+  # If the player does not have enough items, this is the color it will display as (Used in the Lore)
+  # 
+  # Default: '&#fa7d7d'
+  Short: '&#fa7d7d'
+  # If the player has over to total items, this is the color it will display as (Used in the Lore)
+  # 
+  # Default: '&#99ffac'
+  Over: '&#99ffac'
 
 # Here is where you can set the translations for the 2 boolean values (true/false)
 Boolean:
@@ -62,14 +73,15 @@ Messages:
   # - {cost-display} (A custom display of what the pet will cost)
   # 
   # Default: '&eSimplePets &6>> &cYou do not have the item(s) to buy this pet, you need to have {cost-display}'
-  InsufficientFunds: '&eSimplePets &6>> &cYou do not have the item(s) to buy this
-    pet, you need to have {cost-display}'
+  InsufficientFunds: '&eSimplePets &6>> &cYou do not have the item(s) to buy this pet, you need to have {cost-display}'
 
   Lore-Lines:
     # These Lore Lines will only be used if 'Pay-Per-Use' is set to false
     # Placeholders:
     # - {type} (will get what type of pet it is)
     # - {cost-display} (A custom display of what the pet will cost)
+    # - {current-total} (How many of the item the player currently has in their inventory)
+    # - {cost} (How many of the item the player needs to have to purchase the pet)
     # - {purchased} (true/false if the player purchased the pet)
     # 
     # Default: '[&#ffbf5ePrice: &#99ffac{cost-display}, &#ffbf5ePurchased: {purchased}]'
@@ -81,6 +93,8 @@ Messages:
     # Placeholders:
     # - {type} (will get what type of pet it is)
     # - {cost-display} (A custom display of what the pet will cost)
+    # - {current-total} (How many of the item the player currently has in their inventory)
+    # - {cost} (How many of the item the player needs to have to purchase the pet)
     # - {purchased} (true/false if the player purchased the pet)
     # 
     # Default: '[&#ffbf5ePrice: &#99ffac{cost-display}]'
