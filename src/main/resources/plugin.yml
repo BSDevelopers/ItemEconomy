@@ -1,0 +1,6 @@
+name: ${artifactId-short}
+main: ${groupId}.${artifactId-short}Module
+version: ${version}
+author: brainsynder
+
+description: Modrinth requires this file (plugin.yml) in-order to upload it to the 'plugins' section

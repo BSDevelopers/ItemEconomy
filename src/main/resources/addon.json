@@ -1,8 +1,8 @@
 {
-  "name": "ItemEconomy",
+  "name": "${artifactId-short}",
   "author": "brainsynder",
 
-  "version": 0.1,
+  "version": ${version},
   "supported-build": 163,
 
   "description": [
