@@ -6,6 +6,8 @@
   "supported-build": 163,
 
   "description": [
-    "&7"
+    "&7Allows pets to be purchased",
+    "&7via in-game items",
+    "&7CustomItems are supported"
   ]
 }
